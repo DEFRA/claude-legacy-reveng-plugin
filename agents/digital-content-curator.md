@@ -35,7 +35,9 @@ Only files without outputs proceed to Phases B and C. If all files of a given ty
 
 ### Phase B — Process screenshots
 
-For each screenshot, launch a Task subagent (to keep images out of your context). Launch all screenshot subagents in parallel in a single response. Each skill takes a single argument: the file path. Do not pass any other text in the argument.
+Split the to-do list of screenshots into **batches of no more than 5**. Process each batch sequentially — launch all subagents in the batch in parallel in a single response, then wait for every subagent in that batch to return before launching the next batch.
+
+Each skill takes a single argument: the file path. Do not pass any other text in the argument.
 
 ```
 Task(
@@ -44,7 +46,14 @@ Task(
 )
 ```
 
-Wait for all screenshot subagents to return before continuing.
+After **each batch completes**, re-glob `html/*.html` and confirm that an HTML file exists for every screenshot in that batch. If any output is missing, retry the failed file(s) immediately (still within the same batch) before moving to the next batch.
+
+**Example with 12 screenshots:**
+- Batch 1: screenshots 1–5 → launch 5 tasks in parallel → wait → verify 5 HTMLs
+- Batch 2: screenshots 6–10 → launch 5 tasks in parallel → wait → verify 5 HTMLs
+- Batch 3: screenshots 11–12 → launch 2 tasks in parallel → wait → verify 2 HTMLs
+
+Do NOT proceed to Phase C until every screenshot has a verified HTML output.
 
 ### Phase C — Process transcripts
 
