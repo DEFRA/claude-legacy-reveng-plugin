@@ -128,6 +128,7 @@ graph LR
         ad[application-developer]
         da[database-analyst]
         pm[product-manager]
+        fw[feature-writer*]
     end
 
     curator -->|invokes| i2h
@@ -143,7 +144,8 @@ graph LR
     pm -->|invokes| vm
 
     p2f -->|reads| prd[output/PRD.md]
-    p2f -->|writes| ft[output/features/FT-*.md]
+    p2f -->|spawns| fw
+    fw -->|writes| ft[output/features/FT-*.md]
 ```
 
 ## Skills
@@ -165,6 +167,7 @@ graph LR
 | `application-developer` | Comprehensively reads legacy .NET source code under `src/` to extract workflows, behaviours, domain model, business rules, and reports for PRD generation |
 | `database-analyst` | Comprehensively reads legacy SQL Server database code under `src/` to extract schema, stored procedures, triggers, constraints, and database-level business rules for PRD generation |
 | `product-manager` | Synthesises all analysis outputs (domain, interaction, codebase, database) into a comprehensive Product Requirements Document for implementation planning. Requires curated content as a prerequisite |
+| `feature-writer` *(internal)* | Worker agent spawned by `prd-to-features`. Writes a single feature specification file using the 21-section LAP feature template. Not for direct use. |
 
 ## Pipeline
 
@@ -207,7 +210,8 @@ flowchart TB
     end
 
     PRD -->|"/prd-to-features"| p2f_skill{{prd-to-features}}
-    p2f_skill --> features(["output/features/FT-*.md"])
+    p2f_skill -->|spawns N x| fw[feature-writer*]
+    fw --> features(["output/features/FT-*.md"])
 
     src --> appdev & dbanalyst
     html & curated --> ba & ia
