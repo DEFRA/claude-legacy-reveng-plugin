@@ -29,9 +29,9 @@ The image file path is: `$ARGUMENTS`
    - Wrap the content in a minimal HTML5 document structure (`<!DOCTYPE html>`, `<html lang="en">`, `<head>`, `<body>`).
    - Set the `<title>` to something descriptive derived from the page content.
 
-4. **Derive the output path** by replacing `screenshots/` with `html/` in the input path and changing the file extension to `.html`. For example:
-   - `screenshots/dashboard.png` → `html/dashboard.html`
-   - `screenshots/sub/form.jpg` → `html/sub/form.html`
+4. **Derive the output path** by replacing `screenshots/` with `output/html/` in the input path and changing the file extension to `.html`. For example:
+   - `screenshots/dashboard.png` → `output/html/dashboard.html`
+   - `screenshots/sub/form.jpg` → `output/html/sub/form.html`
 
 5. **Ensure the output directory exists** by running `mkdir -p` on the parent directory of the output path.
 
