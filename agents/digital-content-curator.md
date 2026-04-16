@@ -24,12 +24,12 @@ Use Glob to find raw files and existing outputs:
    - Transcripts in `transcripts/` (`.txt`, excluding `*_curated.txt`)
 
 2. **Existing outputs:**
-   - HTML mockups in `html/` (`*.html`)
-   - Curated transcripts in `transcripts/` (`*_curated.txt`)
+   - HTML mockups in `output/html/` (`*.html`)
+   - Curated transcripts in `output/transcripts/` (`*_curated.txt`)
 
 3. **Build a to-do list** by filtering out raw files that already have a corresponding output:
-   - A screenshot `screenshots/<name>.<ext>` is done if `html/<name>.html` exists
-   - A transcript `transcripts/<name>.txt` is done if `transcripts/<name>_curated.txt` exists
+   - A screenshot `screenshots/<name>.<ext>` is done if `output/html/<name>.html` exists
+   - A transcript `transcripts/<name>.txt` is done if `output/transcripts/<name>_curated.txt` exists
 
 Only files without outputs proceed to Phases B and C. If all files of a given type already have outputs, note that and move to the next phase.
 
@@ -63,8 +63,8 @@ Wait for all transcript subagents to return before continuing.
 
 Re-glob for the expected outputs and compare against inputs:
 
-- For each screenshot `screenshots/<name>.<ext>`, verify `html/<name>.html` exists
-- For each raw transcript `transcripts/<name>.txt`, verify `transcripts/<name>_curated.txt` exists
+- For each screenshot `screenshots/<name>.<ext>`, verify `output/html/<name>.html` exists
+- For each raw transcript `transcripts/<name>.txt`, verify `output/transcripts/<name>_curated.txt` exists
 
 If any outputs are missing, **retry the failed files** using the same Task subagent pattern. Then verify again.
 
