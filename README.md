@@ -82,8 +82,8 @@ Place your raw material in the host project (the project you run the plugin from
 
 | Path | Produced by | Description |
 |------|------------|-------------|
-| `html/*.html` | `image-to-html` | Semantic HTML mockup of each screenshot |
-| `transcripts/*_curated.txt` | `curate-transcript` | Interview transcripts with off-topic content removed (intermediate) |
+| `output/html/*.html` | `image-to-html` | Semantic HTML mockup of each screenshot |
+| `output/transcripts/*_curated.txt` | `curate-transcript` | Interview transcripts with off-topic content removed (intermediate) |
 | `output/domain-analysis.md` | `business-analyst` | Comprehensive domain analysis (ubiquitous language, bounded contexts, subdomains, context map) extracted from curated transcripts and HTML mockups |
 | `output/interaction-analysis.md` | `interaction-analyst` | Comprehensive interaction analysis (screen inventory, user workflows with mermaid diagrams, screen navigation map) stitched from HTML mockups and curated transcripts |
 | `output/application-analysis.md` | `application-developer` | Comprehensive application analysis (workflows, behaviours, domain model, business rules, reports) extracted from source code |
@@ -104,8 +104,8 @@ Generated outputs are regeneratable artefacts. Recommended version control appro
 
 ```gitignore
 # Plugin intermediate outputs
-html/
-transcripts/*_curated.txt
+output/html/
+output/transcripts/
 ```
 
 ## Component Map
@@ -182,8 +182,8 @@ flowchart TB
     subgraph curation ["Content curation — manual prerequisite"]
         i2h{{image-to-html}}
         ct{{curate-transcript}}
-        html(["html/*.html"])
-        curated(["*_curated.txt"])
+        html(["output/html/*.html"])
+        curated(["output/transcripts/*_curated.txt"])
 
         i2h --> html
         ct --> curated
@@ -242,7 +242,7 @@ for img in screenshots/*.{png,jpg,jpeg,gif,bmp,webp}; do
   [ -f "$img" ] || continue
   name="${img##*/}"
   name="${name%.*}"
-  [ -f "html/${name}.html" ] && echo "Skipping $img (already done)" && continue
+  [ -f "output/html/${name}.html" ] && echo "Skipping $img (already done)" && continue
   echo "Processing $img..."
   $CLAUDE -p "/image-to-html $img" \
     --allowedTools "Read,Write,Bash(mkdir*)"
@@ -254,7 +254,7 @@ for txt in transcripts/*.txt; do
   [[ "$txt" == *_curated.txt ]] && continue
   name="${txt##*/}"
   name="${name%.txt}"
-  [ -f "transcripts/${name}_curated.txt" ] && echo "Skipping $txt (already done)" && continue
+  [ -f "output/transcripts/${name}_curated.txt" ] && echo "Skipping $txt (already done)" && continue
   echo "Processing $txt..."
   $CLAUDE -p "/curate-transcript $txt" \
     --allowedTools "Read,Edit,Bash(mkdir*;cp*)"
