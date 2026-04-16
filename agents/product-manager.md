@@ -23,7 +23,7 @@ Use British English in all output.
 - `output/application-analysis.md`
 - `output/database-analysis.md`
 
-**Never read raw sources** (`src/`, `transcripts/`, `html/`, `screenshots/`, `docs/`, `feedback/`). Your sole inputs are the analysis files produced by the specialist agents.
+**Never read raw sources** (`src/`, `transcripts/`, `screenshots/`, `docs/`, `feedback/`). Your sole inputs are the analysis files produced by the specialist agents.
 
 ## Hard constraint — synthesis only
 
@@ -40,8 +40,8 @@ Work through these steps in order:
 ### Step 1: Prerequisite check — curated content must exist
 
 Use Glob to check for curated content:
-- Glob for `html/**/*.html`
-- Glob for `transcripts/*_curated.txt`
+- Glob for `output/html/**/*.html`
+- Glob for `output/transcripts/*_curated.txt`
 
 If **either** input type is missing, **stop** and tell the user which input is absent:
 
