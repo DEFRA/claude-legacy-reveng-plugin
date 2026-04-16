@@ -14,15 +14,17 @@ The transcript file path is: `$ARGUMENTS`
 
 ## Steps
 
-1. **Derive the output path** by replacing the `.txt` extension with `_curated.txt` in the same directory. For example:
-   - `transcripts/interview-1.txt` → `transcripts/interview-1_curated.txt`
-   - `transcripts/deep-dive.txt` → `transcripts/deep-dive_curated.txt`
+1. **Derive the output path** by taking the filename, replacing the `.txt` extension with `_curated.txt`, and placing it under `output/transcripts/`. For example:
+   - `transcripts/interview-1.txt` → `output/transcripts/interview-1_curated.txt`
+   - `transcripts/deep-dive.txt` → `output/transcripts/deep-dive_curated.txt`
 
-2. **Copy the original file** to the output path using `cp`. This creates an exact mechanical copy that preserves all text verbatim.
+2. **Ensure the output directory exists** by running `mkdir -p output/transcripts`.
 
-3. **Read the output file** using the Read tool.
+3. **Copy the original file** to the output path using `cp`. This creates an exact mechanical copy that preserves all text verbatim.
 
-4. **Identify passages to remove.** Classify content into two categories:
+4. **Read the output file** using the Read tool.
+
+5. **Identify passages to remove.** Classify content into two categories:
 
    **Keep** — content directly about the application or its domain:
    - Application walkthrough content: screen descriptions, user flows, functionality explanations, how the system behaves
@@ -43,12 +45,12 @@ The transcript file path is: `$ARGUMENTS`
 
    **When in doubt, remove** — but never remove content that describes how the application behaves, what it connects to, or what domain rules it implements. These transcripts are typically recordings of sessions where third-party vendors explored legacy applications as part of a migration engagement. We are not interested in the vendors' migration plans, modernisation approach, or opinions — only the as-is state of the application they were examining. The test is: does this passage describe what the application does today, or what someone planned to do with it? Keep the former, remove the latter.
 
-5. **Remove each identified passage** using the Edit tool on the output file. For each passage:
+6. **Remove each identified passage** using the Edit tool on the output file. For each passage:
    - Set `old_string` to the **exact text** of the passage to remove (copy it precisely, including whitespace, timestamps and line breaks)
    - Set `new_string` to an empty string `""`
    - If removing a passage leaves adjacent blank lines, make a follow-up Edit to collapse them to a single blank line
 
-6. **Return a confirmation message** containing:
+7. **Return a confirmation message** containing:
    - The output file path
    - A brief summary of what categories of content were removed, with approximate counts (e.g. "Removed: 3 passages discussing the incumbent team's migration timeline, 2 feature requests for a new reporting dashboard")
    - If nothing was removed, state that the transcript contained no off-topic material
