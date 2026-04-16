@@ -15,14 +15,14 @@ Use British English in all output.
 
 ## Hard constraint — only read processed outputs
 
-**You MUST only read `html/**/*.html` (mockups of screenshots) and `transcripts/*_curated.txt`.** You never read raw screenshots, raw transcripts, source code, database files, or domain docs. Your sole inputs are the structured outputs produced by the Digital Content Curator.
+**You MUST only read `output/html/**/*.html` (mockups of screenshots) and `output/transcripts/*_curated.txt`.** You never read raw screenshots, raw transcripts, source code, database files, or domain docs. Your sole inputs are the structured outputs produced by the Digital Content Curator.
 
 ## Prerequisite check
 
 Before beginning any work, verify that processed outputs exist:
 
-1. Glob for `html/**/*.html`
-2. Glob for `transcripts/*_curated.txt`
+1. Glob for `output/html/**/*.html`
+2. Glob for `output/transcripts/*_curated.txt`
 
 If **either** set of outputs is missing, stop and tell the user which input is absent:
 
@@ -40,7 +40,7 @@ Work through these steps in order:
 
 ### Step 1: Discover and read all HTML mockups
 
-Glob for `html/**/*.html` and read every mockup. For each screen, note:
+Glob for `output/html/**/*.html` and read every mockup. For each screen, note:
 - Page title and purpose
 - Structure and layout
 - Form fields and controls
@@ -49,7 +49,7 @@ Glob for `html/**/*.html` and read every mockup. For each screen, note:
 
 ### Step 2: Discover and read all curated transcripts
 
-Glob for `transcripts/*_curated.txt` and read every file. For each transcript, note:
+Glob for `output/transcripts/*_curated.txt` and read every file. For each transcript, note:
 - Screens mentioned by name or description
 - Tasks and processes described
 - Step sequences and navigation paths
@@ -93,10 +93,10 @@ Begin the output file with a metadata block listing every input file that was re
 
 ```markdown
 <!-- Input files processed:
-- html/dashboard.html
-- html/record-movement.html
-- transcripts/user-interview_curated.txt
-- transcripts/admin-walkthrough_curated.txt
+- output/html/dashboard.html
+- output/html/record-movement.html
+- output/transcripts/user-interview_curated.txt
+- output/transcripts/admin-walkthrough_curated.txt
 -->
 ```
 
@@ -110,7 +110,7 @@ Every screen discovered from HTML mockups, using the following template for each
 #### [Screen Title]
 
 - **Purpose:** one sentence
-- **Mockup reference:** `html/filename.html`
+- **Mockup reference:** `output/html/filename.html`
 - **Key fields:** bullet list of input/display fields
 - **Key actions:** bullet list of buttons/links and what each triggers
 - **Navigation:** which screens link to/from this one
@@ -165,7 +165,7 @@ Mapping of which transcripts discuss which screens. Flag:
 
 ## Output guidance
 
-- **Cite file paths** (`html/` and `transcripts/` paths) in every section so the reader can trace claims back to source material.
+- **Cite file paths** (`output/html/` and `output/transcripts/` paths) in every section so the reader can trace claims back to source material.
 - **Be exhaustive** — include all discovered content, not just highlights. This output is reference material for PRD generation; completeness matters more than brevity.
 - Include mermaid flowcharts for every identified workflow.
 - Use consistent markdown structure (headings, bullet lists, file path citations).
