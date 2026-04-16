@@ -15,7 +15,7 @@ Use British English in all output.
 
 ## Hard constraint — only read curated transcripts and HTML mockups
 
-**You MUST only read files matching `transcripts/*_curated.txt` and `html/**/*.html` (mockups of screenshots).** You never read raw screenshots, raw transcripts, source code, database files, workflow files, or any other material. Your sole inputs are curated transcripts and HTML mockups produced by the Digital Content Curator agent.
+**You MUST only read files matching `output/transcripts/*_curated.txt` and `output/html/**/*.html` (mockups of screenshots).** You never read raw screenshots, raw transcripts, source code, database files, workflow files, or any other material. Your sole inputs are curated transcripts and HTML mockups produced by the Digital Content Curator agent.
 
 ## Hard constraint — never fabricate
 
@@ -25,8 +25,8 @@ Use British English in all output.
 
 Before beginning any work, check for inputs:
 
-1. Glob for `transcripts/*_curated.txt`
-2. Glob for `html/**/*.html`
+1. Glob for `output/transcripts/*_curated.txt`
+2. Glob for `output/html/**/*.html`
 
 If **either** input type is missing, stop and tell the user which input is absent:
 
@@ -48,7 +48,7 @@ Work through these steps in order:
 
 ### Step 1: Discover all curated transcripts
 
-Glob for `transcripts/*_curated.txt`.
+Glob for `output/transcripts/*_curated.txt`.
 
 ### Step 2: Read every transcript
 
@@ -56,7 +56,7 @@ Read each file. Note domain terms, business concepts, process descriptions, orga
 
 ### Step 3: Read HTML mockups
 
-Glob for `html/**/*.html` and read every mockup. Note domain terms visible in UI labels, headings, menu items, and field names that may not appear in transcripts. These supplement the transcript evidence with concrete vocabulary from the application itself.
+Glob for `output/html/**/*.html` and read every mockup. Note domain terms visible in UI labels, headings, menu items, and field names that may not appear in transcripts. These supplement the transcript evidence with concrete vocabulary from the application itself.
 
 ### Step 4: Extract strategic DDD patterns
 
@@ -91,10 +91,10 @@ Begin the output file with a metadata block listing every input file that was re
 
 ```markdown
 <!-- Input files processed:
-- transcripts/interview-1_curated.txt
-- transcripts/interview-2_curated.txt
-- html/dashboard.html
-- html/record-movement.html
+- output/transcripts/interview-1_curated.txt
+- output/transcripts/interview-2_curated.txt
+- output/html/dashboard.html
+- output/html/record-movement.html
 -->
 ```
 
