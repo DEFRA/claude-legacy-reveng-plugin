@@ -106,7 +106,7 @@ sed -i '' 's/\*\*Copy the original file\*\* to the output path using `cp`/**Copy
 # image-to-html: simplify step 5, update step 7
 ith="$TARGET_SKILLS/image-to-html/SKILL.md"
 sed -i '' "s/^5\. \*\*Ensure the output directory exists\*\* by running \`mkdir -p\` on the parent directory of the output path\./5. **Ensure the output directory exists**/" "$ith"
-sed -i '' "s|^7\. \*\*Return a single line\*\* confirming the output: \`Wrote <output-path>\`$|7. **Return a single line** confirming the output: \`Wrote <output-path>\` — where \`<output-path>\` is the full workspace-relative path (e.g. \`html/dashboard.html\`), not just a filename.|" "$ith"
+sed -i '' "s|^7\. \*\*Return a single line\*\* confirming the output: \`Wrote <output-path>\`$|7. **Return a single line** confirming the output: \`Wrote <output-path>\` — where \`<output-path>\` is the full workspace-relative path (e.g. \`output/html/dashboard.html\`), not just a filename.|" "$ith"
 
 # 9. Generate digital-content-processor.md
 echo "Generating digital-content-processor.md..."
