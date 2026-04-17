@@ -201,8 +201,26 @@ EOF
     return 0
   fi
 
-  echo "Not implemented." >&2
-  return 1
+  local dirs=(screenshots transcripts src output)
+  for dir in "${dirs[@]}"; do
+    mkdir -p "$dir"
+    echo "Created $dir/"
+  done
+
+  local gitignore_entries=("output/html/" "output/transcripts/*_curated.txt")
+  local touched=false
+  for entry in "${gitignore_entries[@]}"; do
+    if [[ ! -f .gitignore ]] || ! grep -qxF "$entry" .gitignore; then
+      echo "$entry" >> .gitignore
+      touched=true
+    fi
+  done
+
+  if [[ "$touched" == "true" ]]; then
+    echo "Updated .gitignore"
+  else
+    echo ".gitignore already up to date"
+  fi
 }
 
 cmd_curate() {
