@@ -269,8 +269,12 @@ EOF
     return 0
   fi
 
-  echo "Not implemented." >&2
-  return 1
+  validate_inputs synthesise
+  run_claude \
+    "Please could you run the \`product-manager\` agent to analyse the application and produce the PRD? Thank you." \
+    "$MODEL" \
+    "$VERBOSE" \
+    "$DRY_RUN"
 }
 
 cmd_decompose() {
