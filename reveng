@@ -242,8 +242,12 @@ EOF
     return 0
   fi
 
-  echo "Not implemented." >&2
-  return 1
+  validate_inputs curate
+  run_claude \
+    "Please could you run the \`digital-content-curator\` agent to prepare all the screenshots and transcripts for analysis? Thank you." \
+    "$MODEL" \
+    "$VERBOSE" \
+    "$DRY_RUN"
 }
 
 cmd_synthesise() {
