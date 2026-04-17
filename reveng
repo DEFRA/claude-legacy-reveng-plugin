@@ -1,0 +1,311 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VERSION="0.1.0"
+CONFIG_DIR="${REVENG_CONFIG_DIR:-$HOME/.config/reveng}"
+PLUGIN_DIR="$CONFIG_DIR/plugin"
+
+# Default models per command
+CURATE_DEFAULT_MODEL="sonnet"
+SYNTHESISE_DEFAULT_MODEL="opus"
+DECOMPOSE_DEFAULT_MODEL="opus"
+
+# ── Usage ────────────────────────────────────────────────────────────────────
+
+usage() {
+  cat <<'EOF'
+Usage: reveng <command> [options]
+
+Commands:
+  curate       Prepare screenshots and transcripts for analysis
+  synthesise   Run analysis agents and produce the PRD
+  decompose    Decompose the PRD into feature specifications
+  sandbox      Start a devcontainer for the current project
+  init         Scaffold directory structure and .gitignore
+  version      Print version and exit
+  help         Show this help message
+
+Global options (for commands that invoke Claude):
+  -m, --model MODEL   Claude model to use (default varies by command)
+  -v, --verbose        Show Claude commands and raw output
+  --dry-run            Print what would be executed without running
+  -h, --help           Show help for a command
+
+Run 'reveng <command> --help' for command-specific usage.
+EOF
+}
+
+# ── Shared helpers ───────────────────────────────────────────────────────────
+
+warn_permissions() {
+  if [[ "${DEVCONTAINER:-}" != "true" ]]; then
+    echo "⚠️  WARNING: Running with --dangerously-skip-permissions outside a container." >&2
+    echo "⚠️  Claude will have unrestricted access to tools (file writes, shell commands, etc)." >&2
+    echo "⚠️  For safer execution, use a devcontainer or container sandbox." >&2
+  fi
+}
+
+run_claude() {
+  local prompt="$1"
+  local model="$2"
+  local verbose="${3:-false}"
+  local dry_run="${4:-false}"
+
+  local cmd=(
+    claude -p "$prompt"
+    --plugin-dir "$PLUGIN_DIR"
+    --dangerously-skip-permissions
+    --output-format stream-json
+    --model "$model"
+  )
+
+  if [[ "$dry_run" == "true" ]]; then
+    echo "Would run:"
+    echo "  ${cmd[*]}"
+    return 0
+  fi
+
+  warn_permissions
+
+  if [[ "$verbose" == "true" ]]; then
+    "${cmd[@]}" 2>&1 | tee /dev/stderr | jq -r 'select(.type == "result") | .result // empty'
+  else
+    local output
+    if ! output=$("${cmd[@]}" 2>&1); then
+      echo "Error: Claude exited with a non-zero status." >&2
+      echo "$output" >&2
+      return 1
+    fi
+    echo "$output" | jq -r 'select(.type == "result") | .result // empty'
+  fi
+}
+
+validate_inputs() {
+  local check_type="$1"
+
+  case "$check_type" in
+    curate)
+      local has_screenshots=false
+      local has_transcripts=false
+      for f in screenshots/*.png screenshots/*.jpg screenshots/*.jpeg screenshots/*.gif screenshots/*.bmp screenshots/*.webp; do
+        if [[ -f "$f" ]]; then
+          has_screenshots=true
+          break
+        fi
+      done
+      for f in transcripts/*.txt; do
+        if [[ -f "$f" ]]; then
+          has_transcripts=true
+          break
+        fi
+      done
+      if [[ "$has_screenshots" == "false" && "$has_transcripts" == "false" ]]; then
+        echo "Error: no screenshots or transcripts found." >&2
+        echo "Place files in screenshots/ and/or transcripts/ before running 'reveng curate'." >&2
+        return 1
+      fi
+      ;;
+    synthesise)
+      local has_html=false
+      local has_curated=false
+      for f in output/html/*.html; do
+        if [[ -f "$f" ]]; then
+          has_html=true
+          break
+        fi
+      done
+      for f in output/transcripts/*_curated.txt; do
+        if [[ -f "$f" ]]; then
+          has_curated=true
+          break
+        fi
+      done
+      if [[ "$has_html" == "false" || "$has_curated" == "false" ]]; then
+        echo "Error: no curated content found." >&2
+        echo "Run 'reveng curate' first to prepare screenshots and transcripts." >&2
+        return 1
+      fi
+      ;;
+    decompose)
+      if [[ ! -f "output/PRD.md" ]]; then
+        echo "Error: output/PRD.md not found." >&2
+        echo "Run 'reveng synthesise' first to produce the PRD." >&2
+        return 1
+      fi
+      ;;
+  esac
+}
+
+# ── Parse common flags ──────────────────────────────────────────────────────
+
+parse_flags() {
+  local default_model="$1"
+  shift
+
+  MODEL="$default_model"
+  VERBOSE="false"
+  DRY_RUN="false"
+  SHOW_HELP="false"
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -m|--model)
+        if [[ $# -lt 2 ]]; then
+          echo "Error: --model requires an argument." >&2
+          return 1
+        fi
+        MODEL="$2"
+        shift 2
+        ;;
+      -v|--verbose)
+        VERBOSE="true"
+        shift
+        ;;
+      --dry-run)
+        DRY_RUN="true"
+        shift
+        ;;
+      -h|--help)
+        SHOW_HELP="true"
+        shift
+        ;;
+      *)
+        echo "Error: unknown option '$1'" >&2
+        return 1
+        ;;
+    esac
+  done
+}
+
+# ── Commands ─────────────────────────────────────────────────────────────────
+
+cmd_version() {
+  echo "reveng $VERSION"
+}
+
+cmd_init() {
+  if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    cat <<'EOF'
+Usage: reveng init
+
+Scaffolds the expected directory structure and .gitignore entries
+in the current working directory.
+
+Creates:
+  screenshots/   transcripts/   src/   output/
+
+Adds to .gitignore:
+  output/html/
+  output/transcripts/*_curated.txt
+EOF
+    return 0
+  fi
+
+  echo "Not implemented." >&2
+  return 1
+}
+
+cmd_curate() {
+  parse_flags "$CURATE_DEFAULT_MODEL" "$@"
+
+  if [[ "$SHOW_HELP" == "true" ]]; then
+    cat <<'EOF'
+Usage: reveng curate [options]
+
+Prepares raw screenshots and interview transcripts into structured,
+analysis-ready outputs using the digital-content-curator agent.
+
+Options:
+  -m, --model MODEL   Claude model to use (default: sonnet)
+  -v, --verbose        Show Claude commands and raw output
+  --dry-run            Print what would be executed without running
+  -h, --help           Show this help message
+EOF
+    return 0
+  fi
+
+  echo "Not implemented." >&2
+  return 1
+}
+
+cmd_synthesise() {
+  parse_flags "$SYNTHESISE_DEFAULT_MODEL" "$@"
+
+  if [[ "$SHOW_HELP" == "true" ]]; then
+    cat <<'EOF'
+Usage: reveng synthesise [options]
+
+Runs the four analysis agents and synthesises results into a Product
+Requirements Document using the product-manager agent.
+
+Options:
+  -m, --model MODEL   Claude model to use (default: opus)
+  -v, --verbose        Show Claude commands and raw output
+  --dry-run            Print what would be executed without running
+  -h, --help           Show this help message
+EOF
+    return 0
+  fi
+
+  echo "Not implemented." >&2
+  return 1
+}
+
+cmd_decompose() {
+  parse_flags "$DECOMPOSE_DEFAULT_MODEL" "$@"
+
+  if [[ "$SHOW_HELP" == "true" ]]; then
+    cat <<'EOF'
+Usage: reveng decompose [options]
+
+Decomposes the PRD into individually deliverable feature specifications
+using the prd-to-features agent.
+
+Options:
+  -m, --model MODEL   Claude model to use (default: opus)
+  -v, --verbose        Show Claude commands and raw output
+  --dry-run            Print what would be executed without running
+  -h, --help           Show this help message
+EOF
+    return 0
+  fi
+
+  echo "Not implemented." >&2
+  return 1
+}
+
+cmd_sandbox() {
+  if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+    cat <<'EOF'
+Usage: reveng sandbox [options]
+       reveng sandbox clean
+
+Starts or attaches to a devcontainer for the current project.
+
+Subcommands:
+  clean               Remove the project's container
+
+Options:
+  --rebuild            Rebuild the container image from scratch
+  -h, --help           Show this help message
+EOF
+    return 0
+  fi
+
+  echo "Not implemented." >&2
+  return 1
+}
+
+# ── Main dispatch ────────────────────────────────────────────────────────────
+
+case "${1:-}" in
+  curate)      shift; cmd_curate "$@" ;;
+  synthesise)  shift; cmd_synthesise "$@" ;;
+  decompose)   shift; cmd_decompose "$@" ;;
+  sandbox)     shift; cmd_sandbox "$@" ;;
+  init)        shift; cmd_init "$@" ;;
+  version)     cmd_version ;;
+  help|-h|--help) usage ;;
+  "")          usage ;;
+  *)           echo "Error: unknown command '$1'" >&2; usage >&2; exit 1 ;;
+esac
