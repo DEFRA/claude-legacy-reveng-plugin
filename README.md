@@ -21,6 +21,108 @@ If you use this flag, run Claude Code inside a containerised sandbox (Docker, Po
 ## Prerequisites
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed and authenticated
+- Bash 4+
+- `jq` (for parsing Claude output in the `reveng` CLI)
+- For `reveng sandbox` only: Docker and the [`devcontainer` CLI](https://github.com/devcontainers/cli) (`npm install -g @devcontainers/cli`)
+
+## Installation
+
+The repository ships with a `reveng` CLI that wraps the plugin in a set of command-driven workflows. See [`specs/reveng-cli.md`](specs/reveng-cli.md) for the full specification.
+
+```bash
+git clone https://github.com/DEFRA/claude-legacy-reveng-plugin
+cd claude-legacy-reveng-plugin
+./install.sh
+```
+
+`install.sh` copies files to:
+
+| Source | Destination |
+|--------|------------|
+| `reveng` | `~/.local/bin/reveng` |
+| `skills/`, `agents/`, `hooks/`, `.claude-plugin/`, `CLAUDE.md` | `~/.config/reveng/plugin/` |
+| `container/Dockerfile`, `container/devcontainer.json` | `~/.config/reveng/container/` |
+
+Override the destinations with the `REVENG_BIN_DIR` and `REVENG_CONFIG_DIR` environment variables. `install.sh` refuses to overwrite an existing installation by default — pass `--update` to upgrade in place:
+
+```bash
+./install.sh --update
+```
+
+After installation, verify with:
+
+```bash
+reveng version    # prints: reveng 0.1.0
+```
+
+If `~/.local/bin` is not already on your `PATH`, add it to your shell profile:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+### Uninstall
+
+There is no dedicated uninstall command. Remove the installed files manually:
+
+```bash
+rm ~/.local/bin/reveng
+rm -rf ~/.config/reveng
+```
+
+## CLI Commands
+
+All `reveng` commands run headlessly — they invoke Claude Code in `--dangerously-skip-permissions` mode with the plugin loaded from `~/.config/reveng/plugin/`. When run outside a devcontainer, a safety warning is printed to stderr. Use `reveng sandbox` (below) to run commands inside an isolated container.
+
+| Command | Purpose |
+|---------|---------|
+| `reveng init` | Scaffold `screenshots/`, `transcripts/`, `src/`, `output/` and add the intermediate-output entries to `.gitignore` |
+| `reveng curate` | Run the `digital-content-curator` agent to prepare screenshots and transcripts for analysis (default model: `sonnet`) |
+| `reveng synthesise` | Run the `product-manager` agent to produce `output/PRD.md` from curated content (default model: `opus`) |
+| `reveng decompose` | Run the `prd-to-features` agent to decompose `output/PRD.md` into `output/features/FT-*.md` (default model: `opus`) |
+| `reveng sandbox` | Start or attach to a devcontainer for the current project (supports `--rebuild` and `clean` subcommand) |
+| `reveng version` | Print the CLI version and exit |
+| `reveng help` | Print usage information |
+
+### Global flags
+
+These flags are accepted by the `curate`, `synthesise`, and `decompose` commands:
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-m, --model MODEL` | varies by command | Claude model to use |
+| `-v, --verbose` | off | Show Claude commands and raw output |
+| `--dry-run` | off | Print the `claude` command that would run without executing it |
+| `-h, --help` | | Show command-specific help |
+
+### Prerequisites between stages
+
+Each stage validates its inputs before invoking Claude and points the user at the preceding command if something is missing:
+
+| Command | Requires |
+|---------|----------|
+| `curate` | At least one file in `screenshots/` or `transcripts/` |
+| `synthesise` | At least one `output/html/*.html` and one `output/transcripts/*_curated.txt` (run `reveng curate` first) |
+| `decompose` | `output/PRD.md` exists (run `reveng synthesise` first) |
+
+### `reveng sandbox` workflow
+
+`reveng sandbox` provides a containerised environment so Claude Code can run with `--dangerously-skip-permissions` safely. The container is a Node 20 image with Claude Code and standard dev tools preinstalled, and it mounts the current workspace, the installed `reveng` binary, the plugin content, and (optionally) your SSH keys, GitHub CLI auth, and SSH agent socket.
+
+```bash
+cd my-legacy-app
+git init                    # the sandbox requires a git repository
+reveng init                 # scaffold project directories
+reveng sandbox              # start or attach to the project's container
+# inside the container:
+node@sandbox:/workspace$ reveng curate
+node@sandbox:/workspace$ reveng synthesise
+node@sandbox:/workspace$ reveng decompose
+node@sandbox:/workspace$ exit
+
+reveng sandbox --rebuild    # force a fresh image build
+reveng sandbox clean        # remove the project's container
+```
 
 ## Local Development
 
