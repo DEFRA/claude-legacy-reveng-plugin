@@ -1,5 +1,7 @@
 # Claude Legacy Reverse Engineering Plugin
 
+![Reveng mascot](assets/Reveng.jpeg)
+
 A Claude Code plugin for Defra's Legacy Application Programme (LAP) to aid in the reverse engineering of legacy applications.
 
 ## Purpose
